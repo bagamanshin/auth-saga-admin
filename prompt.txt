@@ -1,0 +1,81 @@
+Создай React + TypeScript проект админ-панели со следующими требованиями.
+
+Технологии:
+
+* React
+* TypeScript
+* Vite
+* Redux
+* Redux-Saga
+* React-Router-Dom v5
+* Connected-React-Router
+* Ant Design
+* React-Auth-Kit v1.x
+* Fetch API (без axios)
+
+Архитектура:
+
+* Использовать Feature-Sliced Design (FSD)
+* Слои: app, pages, widgets, features, entities, shared
+* Абсолютные импорты через aliases
+* Типизация всех сущностей и API ответов
+* ESLint + Prettier
+
+API:
+
+* REST backend: http://rest-test.machineheads.ru/
+* Реализовать единый API слой в shared/api
+* Использовать fetch с оберткой
+* Обертка должна:
+
+  * подставлять access token
+  * сохранять access-токен и рефреш-токен в куках
+  * автоматически обновлять токен через refresh token при 401
+  * автоматически повторять исходный запрос после refresh
+  * делать logout при невалидном refresh
+
+Авторизация:
+
+* Login форма
+* Сохранение access и refresh токена в cookies
+* Использовать React-Auth-Kit
+* Protected routes (PrivateRoute)
+
+Функционал админки:
+
+1. Авторизация
+2. Обновление токена
+3. Список постов
+4. Пагинация постов
+5. Данные пагинации брать из заголовков ответа
+5.1 Хранить данные пагинации (page, size) в query-параметрах
+6. Таблица постов на Ant Design
+7. Loading / Error / Empty states
+
+Redux:
+
+* Разделить store по FSD
+* Саги разделить по доменам (auth, posts)
+* Использовать watcher/worker pattern
+
+UI:
+
+* Layout админки:
+
+  * Sidebar
+  * Header
+  * Content
+* Ant Design theme override
+
+Dev:
+
+* env конфиг для API URL
+* npm scripts: dev, build, lint, typecheck
+* README с инструкцией запуска
+
+Тесты:
+
+* Пример unit теста для reducer
+* Пример unit теста для saga
+
+Сгенерируй структуру проекта, конфиги, store, sagas, роутинг, примеры страниц и рабочие примеры API вызовов.
