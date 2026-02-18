@@ -2,7 +2,7 @@ import { Form, Input, Button, Spin, Alert } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginRequest } from '../model/slice';
 import type { RootState } from '@app/store';
-import type { LoginRequest } from '../api/authApi';
+import type { LoginRequest } from '@shared/api/authApi';
 
 export const LoginForm = () => {
   const dispatch = useDispatch();
@@ -23,9 +23,9 @@ export const LoginForm = () => {
         style={{ width: '400px' }}
       >
         <Form.Item
-          label="Username"
-          name="username"
-          rules={[{ required: true, message: 'Please input your username!' }]}
+          label="Email"
+          name="email"
+          rules={[{ required: true, message: 'Please input your email!' }]}
         >
           <Input autoComplete='off' />
         </Form.Item>
@@ -38,7 +38,7 @@ export const LoginForm = () => {
           <Input.Password  autoComplete="off" />
         </Form.Item>
 
-        {error && <Alert message={error} type="error" showIcon style={{ marginBottom: 24 }} />}
+        {error && <Alert message={error} type="error" showIcon style={{ marginBottom: 24, textAlign: 'left' }} />}
 
         <Form.Item>
           <Button type="primary" htmlType="submit" block>

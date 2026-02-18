@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '@app/store';
 import { PATHS } from '@shared/lib/paths';
 
-export const PrivateRoute = ({ component: Component, ...rest }: RouteProps) => {
+export const PublicRoute = ({ component: Component, ...rest }: RouteProps) => {
   const isAuthenticated = useSelector((state: RootState) => !!state.auth.tokens?.access_token);
 
   if (!Component) {
@@ -16,14 +16,14 @@ export const PrivateRoute = ({ component: Component, ...rest }: RouteProps) => {
       {...rest}
       render={(props) =>
         isAuthenticated ? (
-          <Component {...props} />
-        ) : (
           <Redirect
             to={{
-              pathname: PATHS.login,
+              pathname: PATHS.home,
               state: { from: props.location },
             }}
           />
+        ) : (
+          <Component {...props} />
         )
       }
     />

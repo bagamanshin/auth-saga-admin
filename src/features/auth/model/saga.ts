@@ -5,24 +5,26 @@ import {
   LOGOUT,
   loginSuccess,
   loginFailure,
+  setAuthTokens,
+  LOGIN_SUCCESS,
+  RETRIEVE_AUTH_TOKENS,
+  PERSIST_AUTH_TOKENS,
+  persistAuthTokens,
 } from './slice';
 import { loginApi } from '../api/authApi';
-import type { LoginRequest, LoginResponse, AuthErrorResponse, AuthValidationErrorResponse, LoginRequestError } from '../api/authApi';
-import { setCookie, deleteCookie } from '@shared/lib/cookies';
+import type { LoginRequest, LoginResponse, AuthErrorResponse, AuthValidationErrorResponse, LoginRequestError } from '@shared/api/authApi';
 import type { ApiResponse } from '@shared/api/types';
+import { PATHS } from '@shared/lib/paths';
+import { deleteCookie, getCookie, setCookie } from '@shared/lib/cookies';
+import { AUTH_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from '@shared/lib/constants';
 
 function* loginWorker(action: { type: string; payload: LoginRequest }) {
   try {
     const response: ApiResponse<LoginResponse, LoginRequestError> = yield call(loginApi, action.payload);
 
     if (response.status === 200 && response.data) {
-      const { access_token, refresh_token, access_expired_at, refresh_expired_at } = response.data;
-
-      setCookie('_auth', access_token, { 'max-age': access_expired_at });
-      setCookie('_auth_refresh', refresh_token, { 'max-age': refresh_expired_at });
-
+      yield put(persistAuthTokens(response.data));
       yield put(loginSuccess());
-      yield put(push('/'));
     } else {
 
       let errorMessage: string;
@@ -54,14 +56,63 @@ function* loginWorker(action: { type: string; payload: LoginRequest }) {
   }
 }
 
+function* loginSuccessWorker() {
+  yield put(push(PATHS.home));
+}
+
 function* logoutWorker() {
-  deleteCookie('_auth');
-  deleteCookie('_auth_refresh');
-  yield put(push('/login'));
+  yield put(persistAuthTokens(null));
+  yield put(push(PATHS.login));
+}
+
+function* retrieveAuthTokensWorker() {
+  const accessToken = getCookie(AUTH_TOKEN_COOKIE);
+  const refreshToken = getCookie(REFRESH_TOKEN_COOKIE);
+
+  if (accessToken && refreshToken) {
+    yield put(setAuthTokens({ access_token: accessToken, refresh_token: refreshToken }));
+  }
+}
+
+function* persistAuthTokensWorker(action: { type: string; payload: LoginResponse | null; meta?: { onComplete: () => void } }) {
+  if (action.payload) {
+    const { access_token, refresh_token, access_expired_at, refresh_expired_at } = action.payload;
+
+    yield call(setCookie, AUTH_TOKEN_COOKIE, access_token, {
+      expires: new Date(access_expired_at * 1000),
+    });
+
+    yield call(setCookie, REFRESH_TOKEN_COOKIE, refresh_token, {
+      expires: new Date(refresh_expired_at * 1000),
+    });
+
+    yield put(setAuthTokens({ access_token, refresh_token }));
+  } else {
+    yield call(deleteCookie, AUTH_TOKEN_COOKIE);
+    yield call(deleteCookie, REFRESH_TOKEN_COOKIE);
+
+    yield put(setAuthTokens(null));
+  }
+
+  if (action.meta && typeof action.meta.onComplete === 'function') {
+    yield call(action.meta.onComplete);
+  }
+}
+
+function* persistAuthTokensWatcher() {
+  yield takeLatest(PERSIST_AUTH_TOKENS, persistAuthTokensWorker);
+}
+
+function* retrieveAuthTokensWatcher() {
+  yield takeLatest(RETRIEVE_AUTH_TOKENS, retrieveAuthTokensWorker);
 }
 
 function* loginWatcher() {
   yield takeLatest(LOGIN_REQUEST, loginWorker);
+}
+
+function* loginSuccessWatcher() {
+  yield takeLatest(LOGIN_SUCCESS, loginSuccessWorker);
 }
 
 function* logoutWatcher() {
@@ -69,5 +120,11 @@ function* logoutWatcher() {
 }
 
 export function* authSaga() {
-  yield all([loginWatcher(), logoutWatcher()]);
+  yield all([
+    retrieveAuthTokensWatcher(),
+    persistAuthTokensWatcher(),
+    loginWatcher(),
+    loginSuccessWatcher(),
+    logoutWatcher()
+  ]);
 }

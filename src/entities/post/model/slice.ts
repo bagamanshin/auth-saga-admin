@@ -1,39 +1,32 @@
 import type { Post, Pagination } from './types';
+import type { Reducer } from 'redux';
 
-// Action Types
 export const FETCH_POSTS_REQUEST = 'posts/FETCH_POSTS_REQUEST';
 export const FETCH_POSTS_SUCCESS = 'posts/FETCH_POSTS_SUCCESS';
 export const FETCH_POSTS_FAILURE = 'posts/FETCH_POSTS_FAILURE';
-export const SET_POSTS_PAGINATION = 'posts/SET_POSTS_PAGINATION';
 
-// State
 export interface PostsState {
   posts: Post[];
-  pagination: Pagination;
+  pagination: Pagination | null;
   loading: boolean;
   error: string | null;
 }
 
 const initialState: PostsState = {
   posts: [],
-  pagination: {
-    page: 1,
-    size: 10,
-    total: 0,
-  },
+  pagination: null,
   loading: false,
   error: null,
 };
 
-// Action Interfaces
 interface FetchPostsRequestAction {
     type: typeof FETCH_POSTS_REQUEST;
-    payload: { page: number; size: number };
+    payload: { page: number };
 }
 
 interface FetchPostsSuccessAction {
     type: typeof FETCH_POSTS_SUCCESS;
-    payload: { posts: Post[]; total: number };
+    payload: { posts: Post[]; pagination: Pagination };
 }
 
 interface FetchPostsFailureAction {
@@ -41,46 +34,32 @@ interface FetchPostsFailureAction {
     payload: string;
 }
 
-interface SetPostsPaginationAction {
-    type: typeof SET_POSTS_PAGINATION;
-    payload: { page: number; size: number };
-}
+type PostsAction = FetchPostsRequestAction | FetchPostsSuccessAction | FetchPostsFailureAction;
 
-type PostsAction = FetchPostsRequestAction | FetchPostsSuccessAction | FetchPostsFailureAction | SetPostsPaginationAction;
-
-// Reducer
-export const postsReducer = (state = initialState, action: PostsAction): PostsState => {
+export const postsReducer = ((state = initialState, action: PostsAction): PostsState => {
   switch (action.type) {
     case FETCH_POSTS_REQUEST:
       return { ...state, loading: true, error: null };
     case FETCH_POSTS_SUCCESS:
-      return { ...state, loading: false, posts: action.payload.posts, pagination: { ...state.pagination, total: action.payload.total } };
+      return { ...state, loading: false, posts: action.payload.posts, pagination: action.payload.pagination };
     case FETCH_POSTS_FAILURE:
       return { ...state, loading: false, error: action.payload, posts: [] };
-    case SET_POSTS_PAGINATION:
-      return { ...state, pagination: { ...state.pagination, page: action.payload.page, size: action.payload.size } };
     default:
       return state;
   }
-};
+}) as Reducer<PostsState>;
 
-// Action Creators
-export const fetchPostsRequest = (params: { page: number; size: number }) => ({
+export const fetchPostsRequest = (params: { page: number }) => ({
   type: FETCH_POSTS_REQUEST,
   payload: params,
 });
 
-export const fetchPostsSuccess = (posts: Post[], total: number) => ({
+export const fetchPostsSuccess = (posts: Post[], pagination: Pagination) => ({
   type: FETCH_POSTS_SUCCESS,
-  payload: { posts, total },
+  payload: { posts, pagination },
 });
 
 export const fetchPostsFailure = (error: string) => ({
   type: FETCH_POSTS_FAILURE,
   payload: error,
-});
-
-export const setPostsPagination = (params: { page: number, size: number }) => ({
-    type: SET_POSTS_PAGINATION,
-    payload: params,
 });

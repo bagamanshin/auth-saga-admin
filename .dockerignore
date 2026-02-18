@@ -1,0 +1,9 @@
+.git
+node_modules
+dist
+*.log
+/.idea
+.vscode
+npm-debug.log
+Dockerfile
+docker-compose*.yml

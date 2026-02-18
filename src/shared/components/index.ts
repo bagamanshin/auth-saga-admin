@@ -1,0 +1,1 @@
+export { AsyncModuleProvider } from './AsyncModuleProvider';

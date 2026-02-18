@@ -1,12 +1,11 @@
-import { combineReducers } from 'redux';
+import { combineReducers, type Reducer } from 'redux';
 import { connectRouter } from 'connected-react-router';
 import type { History } from 'history';
-import { postsReducer } from '@entities/post';
 import { authReducer } from '@features/auth';
 
-export const createRootReducer = (history: History) =>
+export const createRootReducer = (history: History, asyncReducers: Record<string, Reducer> = {}) =>
   combineReducers({
     router: connectRouter(history),
-    posts: postsReducer,
     auth: authReducer,
+    ...asyncReducers,
   });

@@ -1,60 +1,107 @@
 # React Admin Panel
 
-This is an admin panel boilerplate built with React, TypeScript, and a feature-sliced architecture.
+## Реализованный функционал
 
-## Technologies Used
+### Ленивая подргузка
+- Lazy loading для компонентов
+- Lazy loading для redux-модулей
 
-- **Framework/Library:** React, TypeScript
-- **Build Tool:** Vite
-- **State Management:** Redux, Redux-Saga
-- **Routing:** React-Router-Dom v5, Connected-React-Router
-- **UI Library:** Ant Design v4
-- **Authentication:** React-Auth-Kit v1.x
-- **API Client:** Fetch API
-- **Linting/Formatting:** ESLint + Prettier
-- **Testing:** Jest, Redux-Saga-Test-Plan
+### Аутентификация
+- Страница входа с формой авторизации
+- Управление токенами (хранение в cookies): обновление, mutex-блокировка при гонке запросов
+- Автоматическое переотправление запросов при 401
+- Protected routes с проверкой авторизации
+- Логаут пользователя
 
-## Architecture
+### Управление постами
+- Список постов в виде таблицы
+- Редактирование постов
+- Удаление постов
 
-The project follows the **Feature-Sliced Design (FSD)** methodology. The codebase is organized into the following layers:
+### Архитектура
+- **Feature-Sliced Design (FSD)** методология
+- Redux + Redux-Saga для управления состоянием
+- React-Router-Dom v5 для маршрутизации
+- Error Boundary для обработки ошибок
+- Async Module Provider для ленивой загрузки redux-модулей
 
-- `/app`: Global settings, styles, providers, and store configuration.
-- `/pages`: Application pages, each composed of widgets and features.
-- `/widgets`: Composite UI components like the main layout, sidebar, etc.
-- `/features`: Specific user-facing features (e.g., login form, post table).
-- `/entities`: Business entities and their related logic (e.g., Post, User).
-- `/shared`: Reusable code, utilities, and UI components used across the app.
+### UI компоненты
+- Ant Design v4 компоненты
+- Макеты для аутентифицированных и неаутентифицированных пользователей
+- Таблица с постами (PostTable)
+- Форма входа (LoginForm)
 
-## Getting Started
+---
 
-### Prerequisites
+## Развертывание
 
-- Node.js (v16 or higher)
-- npm
+### Development
 
-### Installation
+1. Установить зависимости:
+```bash
+npm install
+```
 
-1.  Clone the repository.
-2.  Install the dependencies:
-    ```bash
-    npm install
-    ```
-
-### Running the Application
-
-To start the development server, run:
-
+2. Запустить dev сервер:
 ```bash
 npm run dev
 ```
 
-The application will be available at `http://localhost:5173`.
+Приложение будет доступно по адресу `http://localhost:5173`
 
-## Available Scripts
+### Production
 
-- `npm run dev`: Starts the development server.
-- `npm run build`: Builds the application for production.
-- `npm run lint`: Lints the codebase and automatically fixes issues.
-- `npm run typecheck`: Runs the TypeScript compiler to check for type errors.
-- `npm run test`: Runs the unit tests.
-- `npm run preview`: Serves the production build locally.
+#### Локально
+
+1. Собрать приложение:
+```bash
+npm run build
+```
+
+2. Просмотреть prod сборку:
+```bash
+npm run preview
+```
+
+#### Docker
+
+1. Собрать Docker образ:
+```bash
+docker build -t admin-panel .
+```
+
+2. Запустить контейнер:
+```bash
+docker run -p 3000:80 admin-panel
+```
+
+Приложение будет доступно по адресу `http://localhost:3000`
+
+Или запустить с помощью `docker-compose` (порт хоста по-прежнему 3000):
+
+1. Собрать и запустить сервис:
+```bash
+docker compose up --build -d
+```
+
+2. Остановить и удалить контейнеры:
+```bash
+docker compose down
+```
+
+**Dockerfile** использует multi-stage build:
+- **Этап 1:** Node.js для сборки приложения
+- **Этап 2:** Nginx для сервирования статических файлов
+- Custom nginx конфиг находится в `nginx/default.conf`
+
+---
+
+## Скрипты из package.json
+
+| Скрипт | Описание |
+|--------|---------|
+| `npm run dev` | Запускает dev сервер с Vite (hot reload на localhost:5173) |
+| `npm run build` | Компилирует TypeScript + собирает оптимизированную prod сборку |
+| `npm run lint` | Запускает ESLint с автоматическим исправлением ошибок |
+| `npm run typecheck` | Проверяет тип с помощью TypeScript компилятора |
+| `npm run preview` | Локально просматривает prod сборку, перед запуском нужно инициировать сборку (`npm run build`) |
