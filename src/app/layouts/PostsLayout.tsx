@@ -8,6 +8,7 @@ import { Route, Switch } from "react-router-dom";
 const moduleLoader = () => import('@entities/post');
 
 const PostEditPage = lazy(() => import('@pages/posts').then((m) => ({ default: m.PostEditPage })));
+const PostAddPage = lazy(() => import('@pages/posts').then((m) => ({ default: m.PostAddPage })));
 const PostsPage = lazy(() => import('@pages/posts').then((m) => ({ default: m.PostsPage })));
 
 export const PostsLayout = () => {
@@ -21,7 +22,8 @@ export const PostsLayout = () => {
     >
       <Switch>
         <Route path={PATHS.postEdit} component={withSuspense(PostEditPage)} />
-        <Route exact path={PATHS.home} component={withSuspense(PostsPage)} />
+        <Route path={PATHS.postAdd} component={withSuspense(PostAddPage)} />
+        <Route exact path={PATHS.posts} component={withSuspense(PostsPage)} />
       </Switch>
     </AsyncModuleProvider>
   );

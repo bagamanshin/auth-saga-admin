@@ -3,6 +3,8 @@ import type { Reducer } from 'redux';
 import type { RouterState } from 'connected-react-router';
 import type { AuthState } from '@features/auth/model/slice';
 import type { PostsState } from '@entities/post';
+import type { AuthorsState } from '@entities/author';
+import type { TagsState } from '@entities/tag';
 import createSagaMiddleware, { type Saga, type Task } from 'redux-saga';
 import { createBrowserHistory } from 'history';
 import { routerMiddleware } from 'connected-react-router';
@@ -47,6 +49,8 @@ export interface RootState {
   router: RouterState;
   auth: AuthState;
   posts?: PostsState;
+  authors?: AuthorsState;
+  tags?: TagsState;
   // allow additional dynamically injected slices
   [key: string]: unknown;
 }

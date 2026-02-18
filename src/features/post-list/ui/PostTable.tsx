@@ -77,7 +77,7 @@ export const PostTable = () => {
   }, [location.search, dispatch]);
 
   const handleTableChange = (page: number) => {
-    dispatch(push(`${location.pathname}?page=${page}`));
+    dispatch(push(`${PATHS.posts}?page=${page}`));
   };
 
   if (loading && (!posts || posts.length === 0)) {
@@ -89,17 +89,24 @@ export const PostTable = () => {
   }
 
   return (
-    <Table
-      columns={columns}
-      dataSource={posts as Post[]}
-      rowKey="id"
-      loading={loading}
-      pagination={pagination ? {
-        current: pagination.currentPage,
-        pageSize: pagination.perPage,
-        total: pagination.totalCount,
-        onChange: handleTableChange,
-      } : false}
-    />
+    <div>
+      <div style={{ marginBottom: 16 }}>
+        <Button type="primary" onClick={() => dispatch(push(PATHS.postAdd))}>
+          Create Post
+        </Button>
+      </div>
+      <Table
+        columns={columns}
+        dataSource={posts as Post[]}
+        rowKey="id"
+        loading={loading}
+        pagination={pagination ? {
+          current: pagination.currentPage,
+          pageSize: pagination.perPage,
+          total: pagination.totalCount,
+          onChange: handleTableChange,
+        } : false}
+      />
+    </div>
   );
 };

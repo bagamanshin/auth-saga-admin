@@ -15,7 +15,7 @@ export const App = () => {
   return (
     <Switch>
       <PublicRoute path={PATHS.login} component={withSuspense(NotAuthenticatedLayoutLazy)} />
-      <PrivateRoute exact path={[PATHS.home, PATHS.postEdit]} component={withSuspense(AuthenticatedLayoutLazy)} />
+      <PrivateRoute path="/" component={withSuspense(AuthenticatedLayoutLazy)} />
       <Route component={withSuspense(NotFoundPageLazy)} />
     </Switch>
   );
