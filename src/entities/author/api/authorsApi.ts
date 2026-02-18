@@ -40,7 +40,6 @@ export const editAuthorApi = (id: number, authorData: EditAuthorRequest) => {
   return request<EditAuthorRequest, boolean, EditAuthorRequestError>(`/manage/authors/edit?${params.toString()}`, {
     method: 'POST',
     body: authorData,
-    isFormData: true,
   });
 };
 
@@ -55,6 +54,5 @@ export const addAuthorApi = (authorData: EditAuthorRequest) => {
   return request<EditAuthorRequest, boolean, EditAuthorRequestError>(`/manage/authors/add`, {
     method: 'POST',
     body: authorData,
-    isFormData: true,
   });
 };

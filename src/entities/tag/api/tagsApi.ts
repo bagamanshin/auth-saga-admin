@@ -36,7 +36,6 @@ export const editTagApi = (id: number, tagData: EditTagRequest) => {
   return request<EditTagRequest, boolean, EditTagRequestError>(`/manage/tags/edit?${params.toString()}`, {
     method: 'POST',
     body: tagData,
-    isFormData: true,
   });
 };
 
@@ -51,6 +50,5 @@ export const addTagApi = (tagData: EditTagRequest) => {
   return request<EditTagRequest, boolean, EditTagRequestError>(`/manage/tags/add`, {
     method: 'POST',
     body: tagData,
-    isFormData: true,
   });
 };

@@ -46,7 +46,6 @@ export const editPostApi = (id: number, postData: EditPostRequest) => {
   return request<EditPostRequest, boolean, EditPostRequestError>(`/manage/posts/edit?${params.toString()}`, {
     method: 'POST',
     body: postData,
-    isFormData: true,
   });
 };
 
@@ -61,6 +60,5 @@ export const addPostApi = (postData: EditPostRequest) => {
   return request<EditPostRequest, boolean, EditPostRequestError>(`/manage/posts/add`, {
     method: 'POST',
     body: postData,
-    isFormData: true,
   });
 };
