@@ -11,7 +11,6 @@ import type { UploadFile } from 'antd/es/upload/interface';
 
 export const PostEditPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
-  // no local post state needed beyond form
   const [form] = Form.useForm();
   const [serverErrors, setServerErrors] = useState<EditPostRequestError | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
