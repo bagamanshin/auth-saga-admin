@@ -1,3 +1,3 @@
-export * from './TagsPage';
-export * from './TagEditPage';
-export * from './TagAddPage';
+export * from './ui/TagsPage';
+export * from './ui/TagEditPage';
+export * from './ui/TagAddPage';

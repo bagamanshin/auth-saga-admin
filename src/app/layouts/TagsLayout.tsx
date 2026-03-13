@@ -1,11 +1,11 @@
-import { AsyncModuleProvider } from "@shared/components";
+import { LazyReduxModuleProvider } from "@app/providers/LazyReduxModuleProvider";
 import { withSuspense } from "@shared/hoc";
-import { PATHS } from "@shared/lib/paths";
+import { PATHS } from "@shared/config/routes";
 import { Spin } from "antd";
 import { lazy } from "react";
 import { Route, Switch } from "react-router-dom";
 
-const moduleLoader = () => import('@entities/tag');
+const moduleLoader = () => import('@features/tags-list');
 
 const TagEditPage = lazy(() => import('@pages/tags').then((m) => ({ default: m.TagEditPage })));
 const TagAddPage = lazy(() => import('@pages/tags').then((m) => ({ default: m.TagAddPage })));
@@ -13,7 +13,7 @@ const TagsPage = lazy(() => import('@pages/tags').then((m) => ({ default: m.Tags
 
 export const TagsLayout = () => {
   return (
-    <AsyncModuleProvider
+    <LazyReduxModuleProvider
       moduleKey="tags"
       moduleLoader={moduleLoader}
       reducerKey="tagsReducer"
@@ -25,6 +25,6 @@ export const TagsLayout = () => {
         <Route path={PATHS.tagAdd} component={withSuspense(TagAddPage)} />
         <Route exact path={PATHS.tags} component={withSuspense(TagsPage)} />
       </Switch>
-    </AsyncModuleProvider>
+    </LazyReduxModuleProvider>
   );
 };

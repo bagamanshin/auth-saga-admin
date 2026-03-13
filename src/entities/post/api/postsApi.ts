@@ -1,64 +1,69 @@
-import { request } from '@shared/api';
-import type { Post } from '../model/types';
+import { createApi } from '@shared/api';
+import type {
+  PostDTO,
+  EditPostRequestDTO,
+} from '../model/types';
 
 type GetPostsParams = {
   page: number;
 };
 
-export const getPostsApi = ({ page }: GetPostsParams) => {
-  const params = new URLSearchParams({
-    page: page.toString(),
-  });
-  return request<undefined, Post[]>(`/manage/posts?${params.toString()}`);
+type GetPostDetailParams = {
+  id: number;
 };
 
-export const getPostDetailApi = (id: number) => {
-  const params = new URLSearchParams({ id: id.toString() });
-  return request<undefined, Post>(`/manage/posts/detail?${params.toString()}`);
+type EditPostParams = {
+  id: number;
+  postData: EditPostRequestDTO;
 };
 
-export interface EditPostRequest {
-  code?: string;
-  title?: string;
-  authorId?: number;
-  tagIds?: number[];
-  text?: string;
-  previewPicture?: File | null;
-}
-
-export type EditPostErrorResponse = {
-  name: string;
-  message: string;
-  code: number;
-  status: number;
-  type: string;
+type RemovePostParams = {
+  id: number;
 };
 
-export type EditPostValidationErrorResponse = {
-  field: string;
-  message: string;
-}[];
+type AddPostParams = {
+  postData: EditPostRequestDTO;
+};
 
-export type EditPostRequestError = EditPostErrorResponse | EditPostValidationErrorResponse;
+export const getPostsApi = createApi<GetPostsParams, undefined, PostDTO[]>({
+  endpoint: ({ page }) =>
+    `/manage/posts?${new URLSearchParams({
+      page: page.toString(),
+    }).toString()}`,
+});
 
-export const editPostApi = (id: number, postData: EditPostRequest) => {
-  const params = new URLSearchParams({ id: id.toString() });
-  return request<EditPostRequest, boolean, EditPostRequestError>(`/manage/posts/edit?${params.toString()}`, {
+export const getPostDetailApi = createApi<GetPostDetailParams, undefined, PostDTO>({
+  endpoint: ({ id }) =>
+    `/manage/posts/detail?${new URLSearchParams({
+      id: id.toString(),
+    }).toString()}`,
+});
+
+export const editPostApi = createApi<EditPostParams, EditPostRequestDTO, boolean>({
+  endpoint: ({ id }) =>
+    `/manage/posts/edit?${new URLSearchParams({
+      id: id.toString(),
+    }).toString()}`,
+  options: ({ postData }) => ({
     method: 'POST',
     body: postData,
-  });
-};
+  }),
+});
 
-export const removePostApi = (id: number) => {
-  const params = new URLSearchParams({ id: id.toString() });
-  return request<undefined, boolean>(`/manage/posts/remove?${params.toString()}`, {
+export const removePostApi = createApi<RemovePostParams, undefined, boolean>({
+  endpoint: ({ id }) =>
+    `/manage/posts/remove?${new URLSearchParams({
+      id: id.toString(),
+    }).toString()}`,
+  options: {
     method: 'DELETE',
-  });
-};
+  },
+});
 
-export const addPostApi = (postData: EditPostRequest) => {
-  return request<EditPostRequest, boolean, EditPostRequestError>(`/manage/posts/add`, {
+export const addPostApi = createApi<AddPostParams, EditPostRequestDTO, boolean>({
+  endpoint: '/manage/posts/add',
+  options: ({ postData }) => ({
     method: 'POST',
     body: postData,
-  });
-};
+  }),
+});

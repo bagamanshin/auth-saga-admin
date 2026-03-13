@@ -1,4 +1,4 @@
-export interface TagListItem {
+export interface TagListItemDTO {
   id: number;
   name: string;
   code: string;
@@ -7,11 +7,17 @@ export interface TagListItem {
   createdAt: string;
 }
 
-export interface TagDetail {
+export interface TagDetailDTO {
   id: number;
   name: string;
   code: string;
   sort: number;
   updatedAt: string;
   createdAt: string;
+}
+
+export interface EditTagRequestDTO {
+  code?: string;
+  name?: string;
+  sort?: number;
 }

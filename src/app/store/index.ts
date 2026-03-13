@@ -1,14 +1,16 @@
 import { legacy_createStore as createStore, applyMiddleware } from 'redux';
 import type { Reducer } from 'redux';
 import type { RouterState } from 'connected-react-router';
-import type { AuthState } from '@features/auth/model/slice';
-import type { PostsState } from '@entities/post';
-import type { AuthorsState } from '@entities/author';
-import type { TagsState } from '@entities/tag';
+import type { AuthState } from '@features/login';
+import type { SessionState } from '@entities/session';
+import type { PostsState } from '@features/posts-list';
+import type { AuthorsState } from '@features/authors-list';
+import type { TagsState } from '@features/tags-list';
 import createSagaMiddleware, { type Saga, type Task } from 'redux-saga';
 import { createBrowserHistory } from 'history';
 import { routerMiddleware } from 'connected-react-router';
 import { composeWithDevTools } from 'redux-devtools-extension';
+import { configureSagaRunner } from '@shared/lib/sagaRunner';
 
 import { createRootReducer } from './rootReducer';
 import { rootSaga } from './rootSaga';
@@ -43,11 +45,18 @@ export const store = Object.assign(baseStore, {
   }
 });
 
+configureSagaRunner({
+  dispatch: (action) => store.dispatch(action),
+  getState: () => store.getState(),
+});
+
 sagaMiddleware.run(rootSaga);
 
 export interface RootState {
   router: RouterState;
   auth: AuthState;
+  session: SessionState;
+  // lazy loaded slices
   posts?: PostsState;
   authors?: AuthorsState;
   tags?: TagsState;

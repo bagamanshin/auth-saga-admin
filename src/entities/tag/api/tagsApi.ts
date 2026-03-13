@@ -1,54 +1,63 @@
-import { request } from '@shared/api';
-import type { TagListItem, TagDetail } from '../model/types';
+import { createApi } from '@shared/api';
+import type {
+  TagListItemDTO,
+  TagDetailDTO,
+  EditTagRequestDTO,
+} from '../model/types';
 
-export const getTagsApi = () => {
-  return request<undefined, TagListItem[]>(`/manage/tags`);
+type GetTagDetailParams = {
+  id: number;
 };
 
-export const getTagDetailApi = (id: number) => {
-  const params = new URLSearchParams({ id: id.toString() });
-  return request<undefined, TagDetail>(`/manage/tags/detail?${params.toString()}`);
+type EditTagParams = {
+  id: number;
+  tagData: EditTagRequestDTO;
 };
 
-export interface EditTagRequest {
-  code?: string;
-  name?: string;
-  sort?: number;
-}
-
-export type EditTagErrorResponse = {
-  name: string;
-  message: string;
-  code: number;
-  status: number;
-  type: string;
+type RemoveTagParams = {
+  id: number;
 };
 
-export type EditTagValidationErrorResponse = {
-  field: string;
-  message: string;
-}[];
+type AddTagParams = {
+  tagData: EditTagRequestDTO;
+};
 
-export type EditTagRequestError = EditTagErrorResponse | EditTagValidationErrorResponse;
+export const getTagsApi = createApi<undefined, undefined, TagListItemDTO[]>({
+  endpoint: '/manage/tags',
+});
 
-export const editTagApi = (id: number, tagData: EditTagRequest) => {
-  const params = new URLSearchParams({ id: id.toString() });
-  return request<EditTagRequest, boolean, EditTagRequestError>(`/manage/tags/edit?${params.toString()}`, {
+export const getTagDetailApi = createApi<GetTagDetailParams, undefined, TagDetailDTO>({
+  endpoint: ({ id }) =>
+    `/manage/tags/detail?${new URLSearchParams({
+      id: id.toString(),
+    }).toString()}`,
+});
+
+export const editTagApi = createApi<EditTagParams, EditTagRequestDTO, boolean>({
+  endpoint: ({ id }) =>
+    `/manage/tags/edit?${new URLSearchParams({
+      id: id.toString(),
+    }).toString()}`,
+  options: ({ tagData }) => ({
     method: 'POST',
     body: tagData,
-  });
-};
+  }),
+});
 
-export const removeTagApi = (id: number) => {
-  const params = new URLSearchParams({ id: id.toString() });
-  return request<undefined, boolean>(`/manage/tags/remove?${params.toString()}`, {
+export const removeTagApi = createApi<RemoveTagParams, undefined, boolean>({
+  endpoint: ({ id }) =>
+    `/manage/tags/remove?${new URLSearchParams({
+      id: id.toString(),
+    }).toString()}`,
+  options: {
     method: 'DELETE',
-  });
-};
+  },
+});
 
-export const addTagApi = (tagData: EditTagRequest) => {
-  return request<EditTagRequest, boolean, EditTagRequestError>(`/manage/tags/add`, {
+export const addTagApi = createApi<AddTagParams, EditTagRequestDTO, boolean>({
+  endpoint: '/manage/tags/add',
+  options: ({ tagData }) => ({
     method: 'POST',
     body: tagData,
-  });
-};
+  }),
+});

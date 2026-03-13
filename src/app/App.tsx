@@ -2,7 +2,7 @@ import { lazy } from 'react';
 import { Switch, Route } from 'react-router-dom';
 import { PrivateRoute } from './providers/PrivateRoute';
 import { PublicRoute } from './providers/PublicRoute';
-import { PATHS } from '@shared/lib/paths';
+import { PATHS } from '@shared/config/routes';
 import './styles/index.css';
 import './App.css';
 import { withSuspense } from '@shared/hoc';

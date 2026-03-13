@@ -1,11 +1,11 @@
-import { AsyncModuleProvider } from "@shared/components";
+import { LazyReduxModuleProvider } from "@app/providers/LazyReduxModuleProvider";
 import { withSuspense } from "@shared/hoc";
-import { PATHS } from "@shared/lib/paths";
+import { PATHS } from "@shared/config/routes";
 import { Spin } from "antd";
 import { lazy } from "react";
 import { Route, Switch } from "react-router-dom";
 
-const moduleLoader = () => import('@entities/author');
+const moduleLoader = () => import('@features/authors-list');
 
 const AuthorEditPage = lazy(() => import('@pages/authors').then((m) => ({ default: m.AuthorEditPage })));
 const AuthorAddPage = lazy(() => import('@pages/authors').then((m) => ({ default: m.AuthorAddPage })));
@@ -13,7 +13,7 @@ const AuthorsPage = lazy(() => import('@pages/authors').then((m) => ({ default: 
 
 export const AuthorsLayout = () => {
   return (
-    <AsyncModuleProvider
+    <LazyReduxModuleProvider
       moduleKey="authors"
       moduleLoader={moduleLoader}
       reducerKey="authorsReducer"
@@ -25,6 +25,6 @@ export const AuthorsLayout = () => {
         <Route path={PATHS.authorAdd} component={withSuspense(AuthorAddPage)} />
         <Route exact path={PATHS.authors} component={withSuspense(AuthorsPage)} />
       </Switch>
-    </AsyncModuleProvider>
+    </LazyReduxModuleProvider>
   );
 };

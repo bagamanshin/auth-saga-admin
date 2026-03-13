@@ -4,12 +4,13 @@ import type { MenuProps } from 'antd';
 import { useDispatch } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
 import { FileTextOutlined, UserOutlined, TagOutlined } from '@ant-design/icons';
-import { logout } from '@features/auth/model/slice';
+import { logout } from '@features/login';
+import { PATHS } from '@shared/config/routes';
 
 const items: MenuProps['items'] = [
-  { key: '/posts', label: <Link to="/posts">Posts</Link>, icon: <FileTextOutlined /> },
-  { key: '/authors', label: <Link to="/authors">Authors</Link>, icon: <UserOutlined /> },
-  { key: '/tags', label: <Link to="/tags">Tags</Link>, icon: <TagOutlined /> },
+  { key: PATHS.posts, label: <Link to="/posts">Posts</Link>, icon: <FileTextOutlined /> },
+  { key: PATHS.authors, label: <Link to="/authors">Authors</Link>, icon: <UserOutlined /> },
+  { key: PATHS.tags, label: <Link to="/tags">Tags</Link>, icon: <TagOutlined /> },
 ];
 
 const { Header, Content, Sider } = Layout;

@@ -1,6 +1,6 @@
 import React, { lazy } from 'react';
 import { Switch, Route } from 'react-router-dom';
-import { PATHS } from '@shared/lib/paths';
+import { PATHS } from '@shared/config/routes';
 import { AdminLayout } from './AdminLayout';
 import { withSuspense } from '@shared/hoc';
 

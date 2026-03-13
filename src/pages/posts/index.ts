@@ -1,3 +1,3 @@
-export { PostsPage } from './PostsPage';
-export { PostEditPage } from './PostEditPage';
-export { PostAddPage } from './PostAddPage';
+export { PostsPage } from './ui/PostsPage';
+export { PostEditPage } from './ui/PostEditPage';
+export { PostAddPage } from './ui/PostAddPage';

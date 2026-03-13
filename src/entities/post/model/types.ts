@@ -1,38 +1,47 @@
-export interface Media {
+export interface MediaDTO {
   id: number;
   name: string;
   url: string;
 }
 
-export interface Author {
+export interface AuthorDTO {
   id: number;
   fullName: string;
-  avatar?: Media | null;
+  avatar?: MediaDTO | null;
 }
 
-export interface Tag {
+export interface TagDTO {
   id: number;
   name: string;
   code?: string;
 }
 
-export interface Post {
+export interface PostDTO {
   id: number;
   title: string;
   body?: string;
   userId?: number;
   code?: string;
   text?: string;
-  previewPicture?: Media | null;
-  author?: Author | null;
-  tags?: Tag[];
+  previewPicture?: MediaDTO | null;
+  author?: AuthorDTO | null;
+  tags?: TagDTO[];
   updatedAt?: string;
   createdAt?: string;
   authorName?: string;
   tagNames?: string[];
 }
 
-export interface Pagination {
+export interface EditPostRequestDTO {
+  code?: string;
+  title?: string;
+  authorId?: number;
+  tagIds?: number[];
+  text?: string;
+  previewPicture?: File | null;
+}
+
+export interface PaginationDTO {
   totalCount: number;
   pageCount: number;
   currentPage: number;
