@@ -1,17 +1,19 @@
 import { Result, Button } from 'antd';
-import { Link } from 'react-router-dom';
-import { PATHS } from '@shared/config/routes';
 
-export const NotFoundPage = () => {
+export type NotFoundPageProps = {
+  onGoHome: () => void;
+};
+
+export const NotFoundPage = ({ onGoHome }: NotFoundPageProps) => {
   return (
     <Result
       status="404"
       title="404"
       subTitle="Sorry, the page you visited does not exist."
       extra={
-        <Link to={PATHS.home}>
-          <Button type="primary">Back Home</Button>
-        </Link>
+        <Button type="primary" onClick={onGoHome}>
+          Back Home
+        </Button>
       }
     />
   );

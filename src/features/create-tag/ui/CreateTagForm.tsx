@@ -2,13 +2,17 @@ import React, { useState } from 'react';
 import { Form, Button, Alert } from 'antd';
 import { addTagApi } from '../api/tagsApi';
 import { TagFormFields, type EditTagRequestDTO } from '@entities/tag';
+import { createTagSuccess } from '../model/events';
 import { runSagaWorker } from '@shared/lib/sagaRunner';
 import { useDispatch } from 'react-redux';
-import { push } from 'connected-react-router';
-import { PATHS } from '@shared/config/routes';
 import { DisplayError, isDisplayError } from '@shared/api';
 
-export const CreateTagForm: React.FC = () => {
+type CreateTagFormProps = {
+  onCancel?: () => void;
+  onSuccess?: () => void;
+};
+
+export const CreateTagForm: React.FC<CreateTagFormProps> = ({ onCancel, onSuccess }) => {
   const [form] = Form.useForm();
   const [error, setError] = useState<DisplayError | null>(null);
   const [loading, setLoading] = useState(false);
@@ -23,7 +27,8 @@ export const CreateTagForm: React.FC = () => {
     try {
       await runSagaWorker(addTagApi, { tagData: values });
 
-      dispatch(push(PATHS.tags));
+      dispatch(createTagSuccess());
+      onSuccess?.();
     } catch (error) {
       if (isDisplayError(error)) {
         setError(error);
@@ -44,7 +49,7 @@ export const CreateTagForm: React.FC = () => {
           <Button type="primary" htmlType="submit" loading={loading} style={{ marginRight: 8 }}>
             Create
           </Button>
-          <Button onClick={() => dispatch(push(PATHS.tags))}>
+          <Button onClick={onCancel}>
             Cancel
           </Button>
         </Form.Item>

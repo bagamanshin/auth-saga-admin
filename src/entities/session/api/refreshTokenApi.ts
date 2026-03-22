@@ -29,10 +29,7 @@ const refreshTokenApiBase = createApi<
 });
 
 export function* refreshTokenApi(
-  refreshToken: string
+  refreshToken: string,
 ): Generator<unknown, ApiResponse<RefreshTokenResponseDTO>> {
-  return (yield call(
-    refreshTokenApiBase,
-    { refreshToken }
-  )) as ApiResponse<RefreshTokenResponseDTO>;
+  return (yield call(refreshTokenApiBase, { refreshToken })) as ApiResponse<RefreshTokenResponseDTO>;
 }

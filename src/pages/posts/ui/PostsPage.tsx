@@ -1,7 +1,13 @@
 import { PostList } from '@features/posts-list';
 
-export const PostsPage = () => {
+export type PostsPageProps = {
+  onEditPost: (id: number) => void;
+  onCreatePost: () => void;
+  onPageChange: (page: number) => void;
+};
+
+export const PostsPage = ({ onEditPost, onCreatePost, onPageChange }: PostsPageProps) => {
   return (
-    <PostList />
+    <PostList onEdit={onEditPost} onCreate={onCreatePost} onPageChange={onPageChange} />
   );
 };

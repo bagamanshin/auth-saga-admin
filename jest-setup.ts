@@ -1,8 +1,14 @@
 // Mock matchMedia
-global.matchMedia = global.matchMedia || function () {
-  return {
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(((query: string) => ({
     matches: false,
-    addListener: function () {},
-    removeListener: function () {},
-  };
-};
+    media: query,
+    onchange: null,
+    addListener: jest.fn(), // deprecated
+    removeListener: jest.fn(), // deprecated
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  }))),
+});

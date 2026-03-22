@@ -2,17 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { Form, Button, Spin, Alert } from 'antd';
 import { getTagDetailApi, editTagApi } from '../api/tagsApi';
 import { TagFormFields, type EditTagRequestDTO } from '@entities/tag';
+import { editTagSuccess } from '../model/events';
 import { runSagaWorker } from '@shared/lib/sagaRunner';
 import { useDispatch } from 'react-redux';
-import { push } from 'connected-react-router';
-import { PATHS } from '@shared/config/routes';
 import { DisplayError, isDisplayError } from '@shared/api';
 
 type EditTagFormProps = {
   tagId: number;
+  onNotFound: () => void;
+  onSuccess?: () => void;
 };
 
-export const EditTagForm: React.FC<EditTagFormProps> = ({ tagId }) => {
+export const EditTagForm: React.FC<EditTagFormProps> = ({ tagId, onNotFound, onSuccess }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
@@ -24,7 +25,7 @@ export const EditTagForm: React.FC<EditTagFormProps> = ({ tagId }) => {
       try {
         const res = await runSagaWorker(getTagDetailApi, { id:tagId });
         if (!res.data) {
-          dispatch(push(PATHS.tags));
+          onNotFound();
           return;
         }
 
@@ -35,10 +36,10 @@ export const EditTagForm: React.FC<EditTagFormProps> = ({ tagId }) => {
         });
         setLoading(false);
       } catch {
-        dispatch(push(PATHS.tags));
+        onNotFound();
       }
     })();
-  }, [dispatch, form, tagId]);
+  }, [dispatch, form, tagId, onNotFound]);
 
   type FormValues = EditTagRequestDTO;
 
@@ -50,7 +51,8 @@ export const EditTagForm: React.FC<EditTagFormProps> = ({ tagId }) => {
       await runSagaWorker(editTagApi, { id: tagId, tagData: values });
 
 
-      dispatch(push(PATHS.tags));
+      dispatch(editTagSuccess());
+      onSuccess?.();
     } catch (error) {
       if (isDisplayError(error)) {
         setError(error);

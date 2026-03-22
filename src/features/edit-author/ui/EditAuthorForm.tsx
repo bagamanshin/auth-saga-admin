@@ -2,18 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { Form, Button, Spin, Alert } from 'antd';
 import { getAuthorDetailApi, editAuthorApi } from '../api/authorsApi';
 import { AuthorFormFields, type EditAuthorRequestDTO } from '@entities/author';
+import { editAuthorSuccess } from '../model/events';
 import { runSagaWorker } from '@shared/lib/sagaRunner';
 import { useDispatch } from 'react-redux';
-import { push } from 'connected-react-router';
-import { PATHS } from '@shared/config/routes';
 import type { UploadFile } from 'antd/es/upload/interface';
 import { DisplayError, isDisplayError } from '@shared/api';
 
 type EditAuthorFormProps = {
   authorId: number;
+  onNotFound: () => void;
+  onSuccess?: () => void;
 };
 
-export const EditAuthorForm: React.FC<EditAuthorFormProps> = ({ authorId }) => {
+export const EditAuthorForm: React.FC<EditAuthorFormProps> = ({ authorId, onNotFound, onSuccess }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
@@ -27,7 +28,7 @@ export const EditAuthorForm: React.FC<EditAuthorFormProps> = ({ authorId }) => {
       try {
         const res = await runSagaWorker(getAuthorDetailApi, { id: authorId });
         if (!res.data) {
-          dispatch(push(PATHS.authors));
+          onNotFound();
           return;
         }
 
@@ -41,10 +42,10 @@ export const EditAuthorForm: React.FC<EditAuthorFormProps> = ({ authorId }) => {
         setAvatarUrl(res.data.avatar?.url ?? null);
         setLoading(false);
       } catch {
-        dispatch(push(PATHS.authors));
+        onNotFound();
       }
     })();
-  }, [authorId, dispatch, form]);
+  }, [authorId, dispatch, form, onNotFound]);
 
   type FormValues = EditAuthorRequestDTO & { avatar?: UploadFile[] | null };
 
@@ -64,7 +65,8 @@ export const EditAuthorForm: React.FC<EditAuthorFormProps> = ({ authorId }) => {
         removeAvatar: removeAvatar ? '1' : '0',
       }});
 
-      dispatch(push(PATHS.authors));
+      dispatch(editAuthorSuccess());
+      onSuccess?.();
     } catch (error) {
       if (isDisplayError(error)) {
         setError(error);

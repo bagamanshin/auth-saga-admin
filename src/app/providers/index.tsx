@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import type { ComponentType } from 'react';
 import { Provider } from 'react-redux';
 import { ConnectedRouter } from 'connected-react-router';
 import { ConfigProvider } from 'antd';
@@ -12,14 +12,14 @@ ConfigProvider.config({
     },
 });
 
-export const withProviders = (component: () => ReactNode) => () => (
-      <Provider store={store}>
-        <ConnectedRouter history={history}>
-            <ConfigProvider>
-              <ErrorBoundary>
-                {component()}
-              </ErrorBoundary>
-            </ConfigProvider>
-        </ConnectedRouter>
-      </Provider>
+export const withProviders = (Component: ComponentType) => () => (
+  <Provider store={store}>
+    <ConnectedRouter history={history}>
+      <ConfigProvider>
+        <ErrorBoundary>
+          <Component />
+        </ErrorBoundary>
+      </ConfigProvider>
+    </ConnectedRouter>
+  </Provider>
 );

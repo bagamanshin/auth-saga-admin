@@ -6,13 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "lint": "eslint . --fix",
-    "typecheck": "tsc -b --noEmit",
+    "lint": "tsc -b --noEmit && eslint . --fix --max-warnings 0",
+    "lint:fsd": "steiger ./src",
     "test": "jest",
     "preview": "vite preview"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@feature-sliced/steiger-plugin": "^0.5.7",
     "@types/history": "^4.7.11",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.10.1",
@@ -29,10 +30,13 @@
     "globals": "^16.5.0",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.3.0",
     "prettier": "^3.8.1",
     "redux-devtools-extension": "^2.13.9",
     "redux-saga-test-plan": "^4.0.6",
+    "steiger": "^0.5.11",
     "ts-jest": "^29.4.6",
+    "ts-jest-mock-import-meta": "^1.3.1",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.48.0",
     "vite": "^7.3.1"

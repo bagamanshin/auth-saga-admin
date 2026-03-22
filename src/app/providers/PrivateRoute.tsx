@@ -1,7 +1,7 @@
 import { Route, Redirect } from 'react-router-dom';
 import type { RouteProps } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { PATHS } from '@shared/config/routes';
+import { PATHS } from '@app/routes/paths';
 import { selectSessionTokens } from '@entities/session';
 
 export const PrivateRoute = ({ component: Component, ...rest }: RouteProps) => {

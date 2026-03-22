@@ -2,23 +2,20 @@ import React, { useState } from 'react';
 import { Button } from 'antd';
 import { removeAuthorApi } from '../api/authorsApi';
 import { runSagaWorker } from '@shared/lib/sagaRunner';
-import { useDispatch } from 'react-redux';
-import { push } from 'connected-react-router';
-import { PATHS } from '@shared/config/routes';
 
 type DeleteAuthorButtonProps = {
   authorId: number;
+  onDeleted?: () => void;
 };
 
-export const DeleteAuthorButton: React.FC<DeleteAuthorButtonProps> = ({ authorId }) => {
+export const DeleteAuthorButton: React.FC<DeleteAuthorButtonProps> = ({ authorId, onDeleted }) => {
   const [loading, setLoading] = useState(false);
-  const dispatch = useDispatch();
 
   const onDelete = async () => {
     setLoading(true);
     try {
       await runSagaWorker(removeAuthorApi, { id: authorId});
-      dispatch(push(PATHS.authors));
+      onDeleted?.();
     } finally {
       setLoading(false);
     }

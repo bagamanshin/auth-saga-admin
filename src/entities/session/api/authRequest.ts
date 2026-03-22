@@ -1,4 +1,4 @@
-import { call, put } from 'redux-saga/effects';
+import { call, put, select, take } from 'redux-saga/effects';
 import {
   type ApiResponse,
   type BackendErrorMap,
@@ -6,106 +6,157 @@ import {
   request,
 } from '@shared/api';
 import {
-  getSessionTokens,
-  refreshAccessToken,
-  isUnauthorizedError,
-} from './tokenRefresh';
-import { persistSessionTokens, type SessionTokens } from '../model/slice';
+  clearSessionTokens,
+  refreshSessionTokensRequest,
+  refreshSessionTokensSuccess,
+  refreshSessionTokensFailure,
+  REFRESH_SESSION_TOKENS_SUCCESS,
+  REFRESH_SESSION_TOKENS_FAILURE,
+  selectSessionRefreshPending,
+  selectSessionTokens,
+  type SessionTokens,
+} from '../model/slice';
+import { isUnauthorizedError } from '../lib/isUnauthorizedError';
+import { AuthRequestPreventedError } from './errors';
 
+type RefreshAction =
+  | ReturnType<typeof refreshSessionTokensSuccess>
+  | ReturnType<typeof refreshSessionTokensFailure>;
 
 function* getAuthHeaders(): Generator<unknown, Record<string, string>> {
-  const tokens = (yield call(getSessionTokens)) as SessionTokens | null;
+  const tokens = (yield select(selectSessionTokens)) as SessionTokens | null;
 
   if (!tokens?.access_token) {
-    return {};
+    throw new AuthRequestPreventedError();
   }
 
+  return { Authorization: `Bearer ${tokens.access_token}` };
+}
+
+function* withAuthHeaders<REQ>(
+  options: RequestOptions<REQ>,
+): Generator<unknown, RequestOptions<REQ>> {
+  const authHeaders = (yield call(getAuthHeaders)) as Record<string, string>;
+
   return {
-    Authorization: `Bearer ${tokens.access_token}`,
+    ...options,
+    headers: {
+      ...options.headers,
+      ...authHeaders,
+    },
   };
 }
 
-function* handleUnauthorized<REQ, RES>(
-  error: unknown,
+function* requestWithAuth<REQ, RES>(
   endpoint: string,
   options: RequestOptions<REQ>,
   customBackendErrorMap?: BackendErrorMap,
 ): Generator<unknown, ApiResponse<RES>> {
-  const tokens = (yield call(getSessionTokens)) as SessionTokens | null;
-  const refreshToken = tokens?.refresh_token;
+  const requestOptions = (yield call(
+    withAuthHeaders<REQ>,
+    options,
+  )) as RequestOptions<REQ>;
 
-  if (!refreshToken) {
-    yield put(persistSessionTokens(null));
-    throw error;
+  return (yield call(
+    request<REQ, RES>,
+    endpoint,
+    requestOptions,
+    customBackendErrorMap,
+  )) as ApiResponse<RES>;
+}
+
+function* waitForRefreshResolution(): Generator<unknown, boolean> {
+  const action = (yield take([
+    REFRESH_SESSION_TOKENS_SUCCESS,
+    REFRESH_SESSION_TOKENS_FAILURE,
+  ])) as RefreshAction;
+
+  return action.type === REFRESH_SESSION_TOKENS_SUCCESS;
+}
+
+function* clearSessionAndThrow(error: unknown): Generator<unknown, never> {
+  yield put(clearSessionTokens());
+  throw error;
+}
+
+function* ensureRefreshSucceeded(error: unknown): Generator<unknown, void> {
+  const refreshSucceeded = (yield call(waitForRefreshResolution)) as boolean;
+
+  if (refreshSucceeded) {
+    return;
   }
 
-  const newTokens = (yield call(
-    refreshAccessToken,
-    refreshToken
-  )) as SessionTokens;
+  yield call(clearSessionAndThrow, error);
+}
+
+function* startRefreshIfNeeded(error: unknown): Generator<unknown, void> {
+  const refreshPending = (yield select(selectSessionRefreshPending)) as boolean;
+
+  if (refreshPending) {
+    return;
+  }
+
+  const tokens = (yield select(selectSessionTokens)) as SessionTokens | null;
+
+  if (!tokens?.refresh_token) {
+    yield call(clearSessionAndThrow, error);
+  }
+
+  yield put(refreshSessionTokensRequest());
+}
+
+function* retryAfterUnauthorized<REQ, RES>(
+  originalError: unknown,
+  endpoint: string,
+  options: RequestOptions<REQ>,
+  customBackendErrorMap?: BackendErrorMap,
+): Generator<unknown, ApiResponse<RES>> {
+  yield call(startRefreshIfNeeded, originalError);
+  yield call(ensureRefreshSucceeded, originalError);
 
   try {
     return (yield call(
-      request<REQ, RES>,
+      requestWithAuth<REQ, RES>,
       endpoint,
-      {
-        ...options,
-        headers: {
-          ...options.headers,
-          Authorization: `Bearer ${newTokens.access_token}`,
-        },
-      },
-      customBackendErrorMap
+      options,
+      customBackendErrorMap,
     )) as ApiResponse<RES>;
-  } catch (error) {
-    if (isUnauthorizedError(error)) {
-      yield put(persistSessionTokens(null));
+  } catch (retryError) {
+    if (isUnauthorizedError(retryError)) {
+      yield put(clearSessionTokens());
     }
 
-    throw error;
+    throw retryError;
   }
 }
 
 export function* authRequest<REQ, RES>(
   endpoint: string,
   options: RequestOptions<REQ> = {},
-  customBackendErrorMap?: BackendErrorMap
+  customBackendErrorMap?: BackendErrorMap,
 ): Generator<unknown, ApiResponse<RES>> {
-  const {
-    method = 'GET',
-    body,
-    headers = {},
-    isFormData = true,
-  } = options;
+  const refreshPending = (yield select(selectSessionRefreshPending)) as boolean;
 
-  const authHeaders = (yield call(getAuthHeaders)) as Record<string, string>;
-
-  const requestHeaders = {
-    ...headers,
-    ...authHeaders
-  };
+  if (refreshPending) {
+    yield call(ensureRefreshSucceeded, new AuthRequestPreventedError());
+  }
 
   try {
     return (yield call(
-      request<REQ, RES>,
+      requestWithAuth<REQ, RES>,
       endpoint,
-      {
-        method,
-        headers: requestHeaders,
-        body,
-        isFormData,
-      },
-      customBackendErrorMap
+      options,
+      customBackendErrorMap,
     )) as ApiResponse<RES>;
   } catch (error) {
     if (isUnauthorizedError(error)) {
       return (yield call(
-          handleUnauthorized<REQ, RES>,
-          error,
-          endpoint,
-          options,
-          customBackendErrorMap,
-        )) as ApiResponse<RES>
+        retryAfterUnauthorized<REQ, RES>,
+        error,
+        endpoint,
+        options,
+        customBackendErrorMap,
+      )) as ApiResponse<RES>;
     }
 
     throw error;

@@ -1,13 +1,16 @@
 import { useEffect } from 'react';
 import { Table, Spin, Alert, Button, Space, Avatar } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
-import { push } from 'connected-react-router';
 import type { AuthorsState } from '../model/slice';
 import { fetchAuthorsRequest } from '../model/slice';
 import type { AuthorListItemDTO } from '@entities/author';
-import { PATHS } from '@shared/config/routes';
 
-export const AuthorList = () => {
+type AuthorListProps = {
+  onEdit: (id: number) => void;
+  onCreate: () => void;
+};
+
+export const AuthorList = ({ onEdit, onCreate }: AuthorListProps) => {
   const dispatch = useDispatch();
 
   const columns = [
@@ -62,7 +65,7 @@ export const AuthorList = () => {
       key: 'actions',
       render: (_: unknown, record: AuthorListItemDTO) => (
         <Space>
-          <Button type="primary" onClick={() => dispatch(push(`${PATHS.authorEdit}?id=${record.id}`))}>
+          <Button type="primary" onClick={() => onEdit(record.id)}>
             Edit
           </Button>
         </Space>
@@ -88,7 +91,7 @@ export const AuthorList = () => {
   return (
     <div>
       <div style={{ marginBottom: 16 }}>
-        <Button type="primary" onClick={() => dispatch(push(PATHS.authorAdd))}>
+        <Button type="primary" onClick={onCreate}>
           Create Author
         </Button>
       </div>

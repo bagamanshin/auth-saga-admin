@@ -1,8 +1,9 @@
 import { Spin } from 'antd';
-import React, { Suspense, type ReactPropTypes } from 'react';
+import React, { Suspense } from 'react';
 
-export const withSuspense = (Component: React.FC<Record<string, unknown>>) => (props: ReactPropTypes) => (
-  <Suspense fallback={<Spin />}>
-    <Component {...props} />
-  </Suspense>
-);
+export const withSuspense = <P extends object>(Component: React.ComponentType<P>) =>
+  (props: P) => (
+    <Suspense fallback={<Spin />}>
+      <Component {...props} />
+    </Suspense>
+  );

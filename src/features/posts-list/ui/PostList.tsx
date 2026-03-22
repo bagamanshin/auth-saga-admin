@@ -2,13 +2,17 @@ import { useEffect } from 'react';
 import { Table, Spin, Alert, Tag, Button, Space } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
-import { push } from 'connected-react-router';
 import type { PostsState } from '../model/slice';
 import { fetchPostsRequest } from '../model/slice';
 import type { PostDTO } from '@entities/post';
-import { PATHS } from '@shared/config/routes';
 
-export const PostList = () => {
+type PostListProps = {
+  onEdit: (id: number) => void;
+  onCreate: () => void;
+  onPageChange: (page: number) => void;
+};
+
+export const PostList = ({ onEdit, onCreate, onPageChange }: PostListProps) => {
   const dispatch = useDispatch();
   const location = useLocation();
 
@@ -59,7 +63,7 @@ export const PostList = () => {
       key: 'actions',
       render: (_: unknown, record: PostDTO) => (
         <Space>
-          <Button type="primary" onClick={() => dispatch(push(`${PATHS.postEdit}?id=${record.id}`))}>
+          <Button type="primary" onClick={() => onEdit(record.id)}>
             Edit
           </Button>
         </Space>
@@ -77,7 +81,7 @@ export const PostList = () => {
   }, [location.search, dispatch]);
 
   const handleTableChange = (page: number) => {
-    dispatch(push(`${PATHS.posts}?page=${page}`));
+    onPageChange(page);
   };
 
   if (loading && (!posts || posts.length === 0)) {
@@ -91,7 +95,7 @@ export const PostList = () => {
   return (
     <div>
       <div style={{ marginBottom: 16 }}>
-        <Button type="primary" onClick={() => dispatch(push(PATHS.postAdd))}>
+        <Button type="primary" onClick={onCreate}>
           Create Post
         </Button>
       </div>

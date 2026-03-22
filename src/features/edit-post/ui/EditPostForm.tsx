@@ -2,18 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { Form, Button, Spin, Alert } from 'antd';
 import { getPostDetailApi, editPostApi } from '../api/postsApi';
 import { PostFormFields, type EditPostRequestDTO } from '@entities/post';
+import { editPostSuccess } from '../model/events';
 import { runSagaWorker } from '@shared/lib/sagaRunner';
 import { useDispatch } from 'react-redux';
-import { push } from 'connected-react-router';
-import { PATHS } from '@shared/config/routes';
 import type { UploadFile } from 'antd/es/upload/interface';
 import { DisplayError, isDisplayError } from '@shared/api';
 
 type EditPostFormProps = {
   postId: number;
+  onNotFound: () => void;
+  onSuccess?: () => void;
 };
 
-export const EditPostForm: React.FC<EditPostFormProps> = ({ postId }) => {
+export const EditPostForm: React.FC<EditPostFormProps> = ({ postId, onNotFound, onSuccess }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
@@ -26,7 +27,7 @@ export const EditPostForm: React.FC<EditPostFormProps> = ({ postId }) => {
       try {
         const res = await runSagaWorker(getPostDetailApi, {id: postId});
         if (!res.data) {
-          dispatch(push(PATHS.home));
+          onNotFound();
           return;
         }
 
@@ -40,10 +41,10 @@ export const EditPostForm: React.FC<EditPostFormProps> = ({ postId }) => {
         setPreviewUrl(res.data.previewPicture?.url ?? null);
         setLoading(false);
       } catch {
-        dispatch(push(PATHS.home));
+        onNotFound();
       }
     })();
-  }, [dispatch, form, postId]);
+  }, [dispatch, form, postId, onNotFound]);
 
   type FormValues = EditPostRequestDTO & { previewPicture?: UploadFile[] | null };
 
@@ -65,7 +66,8 @@ export const EditPostForm: React.FC<EditPostFormProps> = ({ postId }) => {
         }
       });
 
-      dispatch(push(PATHS.posts));
+      dispatch(editPostSuccess());
+      onSuccess?.();
     } catch (error) {
       if (isDisplayError(error)) {
         setError(error);

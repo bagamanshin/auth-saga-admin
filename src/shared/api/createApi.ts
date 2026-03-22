@@ -1,7 +1,7 @@
 import { call } from 'redux-saga/effects';
 import type { ApiResponse } from './types';
 import type { BackendErrorMap } from './responseHandlers';
-import { request as requestFallback, type RequestFn, type RequestOptions } from './request';
+import { request as requestFnBase, type RequestFn, type RequestOptions } from './request';
 
 type AllPossibleTypes<PARAM, RESOLVED> = RESOLVED | Resolvable<PARAM, RESOLVED>;
 type Resolvable<PARAM, RESOLVED> = (() => RESOLVED) | ((fnParams: PARAM) => RESOLVED);
@@ -42,7 +42,7 @@ export function createApi<PARAM, REQUEST, RESPONSE>(
     const endpoint = resolve(config.endpoint, params);
     const options = resolve(config.options, params);
 
-    const request = requestFn || requestFallback;
+    const request = requestFn || requestFnBase;
 
     return (yield call(
       request<REQUEST, RESPONSE>,

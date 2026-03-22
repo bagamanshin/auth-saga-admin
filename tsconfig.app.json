@@ -28,6 +28,7 @@
     /* Path Aliases */
     "baseUrl": ".",
     "paths": {
+      "@app": ["src/app"],
       "@app/*": ["src/app/*"],
       "@pages/*": ["src/pages/*"],
       "@widgets/*": ["src/widgets/*"],

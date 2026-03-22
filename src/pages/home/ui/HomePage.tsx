@@ -1,13 +1,14 @@
 import React from 'react';
 import { Card, Row, Col, Statistic } from 'antd';
 import { FileTextOutlined, UserOutlined, TagOutlined } from '@ant-design/icons';
-import { useDispatch } from 'react-redux';
-import { push } from 'connected-react-router';
-import { PATHS } from '@shared/config/routes';
 
-export const HomePage: React.FC = () => {
-  const dispatch = useDispatch();
+export type HomePageProps = {
+  onGoPosts: () => void;
+  onGoAuthors: () => void;
+  onGoTags: () => void;
+};
 
+export const HomePage: React.FC<HomePageProps> = ({ onGoPosts, onGoAuthors, onGoTags }) => {
   return (
     <div>
       <h1 style={{ marginBottom: 24 }}>Admin Dashboard</h1>
@@ -15,7 +16,7 @@ export const HomePage: React.FC = () => {
         <Col xs={24} sm={12} lg={8}>
           <Card
             hoverable
-            onClick={() => dispatch(push(PATHS.posts))}
+            onClick={onGoPosts}
             style={{ cursor: 'pointer' }}
           >
             <Statistic
@@ -32,7 +33,7 @@ export const HomePage: React.FC = () => {
         <Col xs={24} sm={12} lg={8}>
           <Card
             hoverable
-            onClick={() => dispatch(push(PATHS.authors))}
+            onClick={onGoAuthors}
             style={{ cursor: 'pointer' }}
           >
             <Statistic
@@ -49,7 +50,7 @@ export const HomePage: React.FC = () => {
         <Col xs={24} sm={12} lg={8}>
           <Card
             hoverable
-            onClick={() => dispatch(push(PATHS.tags))}
+            onClick={onGoTags}
             style={{ cursor: 'pointer' }}
           >
             <Statistic

@@ -1,5 +1,5 @@
 import type { ApiResponse } from './types';
-import { call } from 'redux-saga/effects';
+import { call, cancelled } from 'redux-saga/effects';
 import {
   AbortRequestError,
   NetworkError,
@@ -41,29 +41,37 @@ export function* request<REQ, RES>(
     ...headers,
   };
 
+  const abortController = new AbortController();
   let response: Response;
 
   try {
-    response = (yield call(fetch, `${API_URL}${endpoint}`, {
-      method,
-      headers: requestHeaders,
-      body: requestBody,
-    })) as Response;
-  } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new AbortRequestError(error.message || 'Request was aborted');
+    try {
+      response = (yield call(fetch, `${API_URL}${endpoint}`, {
+        method,
+        headers: requestHeaders,
+        body: requestBody,
+        signal: abortController.signal,
+      })) as Response;
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw new AbortRequestError(error.message || 'Request was aborted');
+      }
+
+      if (error instanceof TypeError) {
+        throw new NetworkError(error.message || 'Network error');
+      }
+
+      throw error;
     }
 
-    if (error instanceof TypeError) {
-      throw new NetworkError(error.message || 'Network error');
+    if (!response.ok) {
+      yield call(handleErrorResponse, response, customBackendErrorHandlerMap);
     }
 
-    throw error;
+    return (yield call(handleSuccessResponse<RES>, response)) as ApiResponse<RES>;
+  } finally {
+    if ((yield cancelled()) as boolean) {
+      abortController.abort();
+    }
   }
-
-  if (!response.ok) {
-    yield call(handleErrorResponse, response, customBackendErrorHandlerMap);
-  }
-
-  return (yield call(handleSuccessResponse<RES>, response)) as ApiResponse<RES>;
 }

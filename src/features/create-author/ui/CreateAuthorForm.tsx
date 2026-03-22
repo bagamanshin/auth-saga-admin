@@ -2,14 +2,18 @@ import React, { useState } from 'react';
 import { Form, Button, Alert } from 'antd';
 import { addAuthorApi } from '../api/authorsApi';
 import { AuthorFormFields, type EditAuthorRequestDTO } from '@entities/author';
+import { createAuthorSuccess } from '../model/events';
 import { runSagaWorker } from '@shared/lib/sagaRunner';
 import { useDispatch } from 'react-redux';
-import { push } from 'connected-react-router';
-import { PATHS } from '@shared/config/routes';
 import type { UploadFile } from 'antd/es/upload/interface';
 import { DisplayError, isDisplayError } from '@shared/api';
 
-export const CreateAuthorForm: React.FC = () => {
+type CreateAuthorFormProps = {
+  onCancel?: () => void;
+  onSuccess?: () => void;
+};
+
+export const CreateAuthorForm: React.FC<CreateAuthorFormProps> = ({ onCancel, onSuccess }) => {
   const [form] = Form.useForm();
   const [error, setError] = useState<DisplayError | null>(null);
   const [loading, setLoading] = useState(false);
@@ -36,7 +40,8 @@ export const CreateAuthorForm: React.FC = () => {
       );
 
       if (res.data) {
-        dispatch(push(PATHS.authors));
+        dispatch(createAuthorSuccess());
+        onSuccess?.();
         return;
       }
     } catch (error) {
@@ -59,7 +64,7 @@ export const CreateAuthorForm: React.FC = () => {
           <Button type="primary" htmlType="submit" loading={loading} style={{ marginRight: 8 }}>
             Create
           </Button>
-          <Button onClick={() => dispatch(push(PATHS.authors))}>
+          <Button onClick={onCancel}>
             Cancel
           </Button>
         </Form.Item>

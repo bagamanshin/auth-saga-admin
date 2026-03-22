@@ -1,23 +1,26 @@
 import React, { useEffect } from 'react';
 import { Button } from 'antd';
 import { useLocation } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { push } from 'connected-react-router';
-import { PATHS } from '@shared/config/routes';
 import { EditAuthorForm } from '@features/edit-author';
 import { DeleteAuthorButton } from '@features/delete-author';
 
-export const AuthorEditPage: React.FC = () => {
+export type AuthorEditPageProps = {
+  onInvalidId: () => void;
+  onCancel: () => void;
+  onDeleted: () => void;
+  onSuccess: () => void;
+};
+
+export const AuthorEditPage: React.FC<AuthorEditPageProps> = ({ onInvalidId, onCancel, onDeleted, onSuccess }) => {
   const location = useLocation();
-  const dispatch = useDispatch();
   const params = new URLSearchParams(location.search);
   const id = Number(params.get('id'));
 
   useEffect(() => {
     if (!id) {
-      dispatch(push(PATHS.authors));
+      onInvalidId();
     }
-  }, [dispatch, id]);
+  }, [id, onInvalidId]);
 
   if (!id) {
     return null;
@@ -25,10 +28,10 @@ export const AuthorEditPage: React.FC = () => {
 
   return (
     <div>
-      <EditAuthorForm authorId={id} />
+      <EditAuthorForm authorId={id} onNotFound={onInvalidId} onSuccess={onSuccess} />
       <div>
-        <DeleteAuthorButton authorId={id} />
-        <Button onClick={() => dispatch(push(PATHS.authors))} style={{ marginLeft: 8 }}>
+        <DeleteAuthorButton authorId={id} onDeleted={onDeleted} />
+        <Button onClick={onCancel} style={{ marginLeft: 8 }}>
           Cancel
         </Button>
       </div>

@@ -1,13 +1,16 @@
 import { useEffect } from 'react';
 import { Table, Spin, Alert, Button, Space } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
-import { push } from 'connected-react-router';
 import type { TagsState } from '../model/slice';
 import { fetchTagsRequest } from '../model/slice';
 import type { TagListItemDTO } from '@entities/tag';
-import { PATHS } from '@shared/config/routes';
 
-export const TagList = () => {
+type TagListProps = {
+  onEdit: (id: number) => void;
+  onCreate: () => void;
+};
+
+export const TagList = ({ onEdit, onCreate }: TagListProps) => {
   const dispatch = useDispatch();
 
   const columns = [
@@ -50,7 +53,7 @@ export const TagList = () => {
       key: 'actions',
       render: (_: unknown, record: TagListItemDTO) => (
         <Space>
-          <Button type="primary" onClick={() => dispatch(push(`${PATHS.tagEdit}?id=${record.id}`))}>
+          <Button type="primary" onClick={() => onEdit(record.id)}>
             Edit
           </Button>
         </Space>
@@ -76,7 +79,7 @@ export const TagList = () => {
   return (
     <div>
       <div style={{ marginBottom: 16 }}>
-        <Button type="primary" onClick={() => dispatch(push(PATHS.tagAdd))}>
+        <Button type="primary" onClick={onCreate}>
           Create Tag
         </Button>
       </div>

@@ -2,10 +2,19 @@ import { Form, Input, Button, Spin, Alert } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginRequest } from '../model/slice';
 import type { LoginRequestDTO } from '../model/saga';
+import { selectSessionTokens } from '@entities/session';
+import { useEffect } from 'react';
 
-export const LoginForm = () => {
+export const LoginForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state: RootState) => state.auth);
+  const tokens = useSelector(selectSessionTokens);
+
+  useEffect(() => {
+    if (tokens) {
+      onSuccess?.();
+    }
+  }, [tokens, onSuccess]);
 
   const onFinish = (values: LoginRequestDTO) => {
     dispatch(loginRequest(values));

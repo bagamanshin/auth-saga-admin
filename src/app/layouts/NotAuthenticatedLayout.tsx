@@ -1,8 +1,12 @@
 import { LoginPage } from '@pages/login';
 import React from 'react';
 
-export const NotAuthenticatedLayout: React.FC = () => (
-  <LoginPage />
+export type NotAuthenticatedLayoutProps = {
+  onSuccess: () => void;
+};
+
+export const NotAuthenticatedLayout: React.FC<NotAuthenticatedLayoutProps> = ({ onSuccess }) => (
+  <LoginPage onSuccess={onSuccess} />
 );
 
 export default NotAuthenticatedLayout;

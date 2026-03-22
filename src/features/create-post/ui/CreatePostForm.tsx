@@ -2,14 +2,18 @@ import React, { useState } from 'react';
 import { Form, Button, Alert } from 'antd';
 import { addPostApi } from '../api/postsApi';
 import { PostFormFields, type EditPostRequestDTO } from '@entities/post';
+import { createPostSuccess } from '../model/events';
 import { runSagaWorker } from '@shared/lib/sagaRunner';
 import { useDispatch } from 'react-redux';
-import { push } from 'connected-react-router';
-import { PATHS } from '@shared/config/routes';
 import type { UploadFile } from 'antd/es/upload/interface';
 import { DisplayError, isDisplayError } from '@shared/api';
 
-export const CreatePostForm: React.FC = () => {
+type CreatePostFormProps = {
+  onCancel?: () => void;
+  onSuccess?: () => void;
+};
+
+export const CreatePostForm: React.FC<CreatePostFormProps> = ({ onCancel, onSuccess }) => {
   const [form] = Form.useForm();
   const [error, setError] = useState<DisplayError | null>(null);
   const [loading, setLoading] = useState(false);
@@ -33,7 +37,8 @@ export const CreatePostForm: React.FC = () => {
       }});
 
       if (res.data) {
-        dispatch(push(PATHS.posts));
+        dispatch(createPostSuccess());
+        onSuccess?.();
         return;
       }
     } catch (error) {
@@ -56,7 +61,7 @@ export const CreatePostForm: React.FC = () => {
           <Button type="primary" htmlType="submit" loading={loading} style={{ marginRight: 8 }}>
             Create
           </Button>
-          <Button onClick={() => dispatch(push(PATHS.posts))}>
+          <Button onClick={onCancel}>
             Cancel
           </Button>
         </Form.Item>

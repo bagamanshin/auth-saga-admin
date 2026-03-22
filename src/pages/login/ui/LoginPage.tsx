@@ -4,7 +4,11 @@ import { Row, Col, Card, Typography, Spin } from 'antd';
 const LoginForm = lazy(() => import('@features/login').then((m) => ({ default: m.LoginForm })));
 const { Title } = Typography;
 
-export const LoginPage = () => {
+export type LoginPageProps = {
+  onSuccess: () => void;
+};
+
+export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
   return (
     <Row justify="center" align="middle" style={{ minHeight: '100vh' }}>
         <Col>
@@ -13,7 +17,7 @@ export const LoginPage = () => {
               <Title level={2}>Admin Panel</Title>
             </div>
             <Suspense fallback={<Spin />}>
-              <LoginForm />
+              <LoginForm onSuccess={onSuccess} />
             </Suspense>
           </Card>
         </Col>
