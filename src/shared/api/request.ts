@@ -1,32 +1,19 @@
-import type { ApiResponse } from './types';
+import type { ApiResponse, RequestFn, RequestOptions, BackendErrorMap } from './types';
 import { call, cancelled } from 'redux-saga/effects';
 import {
   AbortRequestError,
   NetworkError,
 } from './errors';
-import { handleErrorResponse, handleSuccessResponse, type BackendErrorMap } from './responseHandlers';
+import { handleErrorResponse, handleSuccessResponse } from './responseHandlers';
 import { prepareRequestData } from './formDataBuilder';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export type RequestOptions<REQ> = {
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
-  body?: REQ;
-  headers?: Record<string, string>;
-  isFormData?: boolean;
-};
-
-export type RequestFn = <REQ, RES>(
+const request: RequestFn = function* <REQ, RES>(
   endpoint: string,
   options?: RequestOptions<REQ>,
-  customBackendErrorHandlerMap?: BackendErrorMap
-) => Generator<unknown, ApiResponse<RES>>;
-
-export function* request<REQ, RES>(
-  endpoint: string,
-  options?: RequestOptions<REQ>,
-  customBackendErrorHandlerMap?: BackendErrorMap
-): Generator<unknown, ApiResponse<RES> | never> {
+  customBackendErrorHandlerMap?: BackendErrorMap,
+) {
   const {
     method = 'GET',
     body,
@@ -65,13 +52,15 @@ export function* request<REQ, RES>(
     }
 
     if (!response.ok) {
-      yield call(handleErrorResponse, response, customBackendErrorHandlerMap);
+      (yield call(handleErrorResponse, response, customBackendErrorHandlerMap) as never);
     }
 
-    return (yield call(handleSuccessResponse<RES>, response)) as ApiResponse<RES>;
+    return (yield call(handleSuccessResponse, response)) as ApiResponse<RES>;
   } finally {
     if ((yield cancelled()) as boolean) {
       abortController.abort();
     }
   }
-}
+};
+
+export { request };

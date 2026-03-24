@@ -1,46 +1,45 @@
 import { call } from 'redux-saga/effects';
-import type { ApiResponse } from './types';
-import type { BackendErrorMap } from './responseHandlers';
-import { request as requestFnBase, type RequestFn, type RequestOptions } from './request';
+import type { ApiResponse, Api, BackendErrorMap, RequestFn, RequestOptions } from './types';
+import { request as requestFnBase } from './request';
 
-type AllPossibleTypes<PARAM, RESOLVED> = RESOLVED | Resolvable<PARAM, RESOLVED>;
-type Resolvable<PARAM, RESOLVED> = (() => RESOLVED) | ((fnParams: PARAM) => RESOLVED);
+type ValueOrResolver<PAYLOAD, RESOLVED> = RESOLVED | Resolver<PAYLOAD, RESOLVED>;
+type Resolver<PAYLOAD, RESOLVED> = (() => RESOLVED) | ((fnPayload: PAYLOAD) => RESOLVED);
 
-type Endpoint<PARAM> = AllPossibleTypes<PARAM, string>;
-type Options<PARAM, REQUEST> = AllPossibleTypes<PARAM, RequestOptions<REQUEST>>;
+type Endpoint<PAYLOAD> = ValueOrResolver<PAYLOAD, string>;
+type Options<PAYLOAD, REQUEST> = ValueOrResolver<PAYLOAD, RequestOptions<REQUEST>>;
 
-export type CreateApiConfig<PARAM, REQUEST> = {
-  endpoint: Endpoint<PARAM>;
-  options?: Options<PARAM, REQUEST>;
+export type CreateApiConfig<PAYLOAD, REQUEST> = {
+  endpoint: Endpoint<PAYLOAD>;
+  options?: Options<PAYLOAD, REQUEST>;
   customBackendErrorMap?: BackendErrorMap;
 };
 
-function isCallable<PARAM, RESOLVED>(
-  val: AllPossibleTypes<PARAM, RESOLVED>
-): val is Resolvable<PARAM, RESOLVED> {
+function isCallable<PAYLOAD, RESOLVED>(
+  val: ValueOrResolver<PAYLOAD, RESOLVED>
+): val is Resolver<PAYLOAD, RESOLVED> {
   return typeof val === 'function';
 }
 
-function resolve<PARAM, RESOLVED>(
-  value: AllPossibleTypes<PARAM, RESOLVED>,
-  params?: PARAM
+function resolve<PAYLOAD, RESOLVED>(
+  value: ValueOrResolver<PAYLOAD, RESOLVED>,
+  payload?: PAYLOAD
 ) {
   if (isCallable(value)) {
-    return params === undefined ? (value as () => RESOLVED)() : value(params);
+    return payload === undefined ? (value as () => RESOLVED)() : value(payload);
   }
 
   return value;
 }
 
-export function createApi<PARAM, REQUEST, RESPONSE>(
-  config: CreateApiConfig<PARAM, REQUEST>
-): (params?: PARAM, requestFn?: RequestFn) => Generator<unknown, ApiResponse<RESPONSE>> {
+export function createApi<PAYLOAD, REQUEST, RESPONSE>(
+  config: CreateApiConfig<PAYLOAD, REQUEST>
+): Api<PAYLOAD, RESPONSE> {
   return function* (
-    params?: PARAM,
+    payload?: PAYLOAD,
     requestFn?: RequestFn
-  ): Generator<unknown, ApiResponse<RESPONSE>> {
-    const endpoint = resolve(config.endpoint, params);
-    const options = resolve(config.options, params);
+  ) {
+    const endpoint = resolve(config.endpoint, payload);
+    const options = resolve(config.options, payload);
 
     const request = requestFn || requestFnBase;
 

@@ -9,27 +9,22 @@ import {
   ResponseParseError,
   UnknownBackendError,
   type BackendErrorParams,
-  type BackendErrorMessageBuilder,
 } from './errors';
-import type { ApiResponse } from './types';
-
-export type BackendErrorMap = {
-  fallback?: BackendErrorMessageBuilder;
-} & Partial<Record<number, BackendErrorMessageBuilder>>;
+import type { ApiResponse, BackendErrorMap } from './types';
 
 type BackendErrorConstructor = new (
-  params: BackendErrorParams<never>
+  params: BackendErrorParams<unknown>
 ) => BackendError;
 
 const defaultBackendErrorMap: {
-  fallback: typeof UnknownBackendError;
+  fallback: BackendErrorConstructor;
 } & Record<number, BackendErrorConstructor> = {
-  400: BackendGeneralError,
-  401: NotAuthorizedBackendError,
-  404: BackendGeneralError,
-  422: BackendFormValidationError,
-  500: InternalBackendError,
-  fallback: UnknownBackendError,
+  400: BackendGeneralError as unknown as BackendErrorConstructor,
+  401: NotAuthorizedBackendError as unknown as BackendErrorConstructor,
+  404: BackendGeneralError as unknown as BackendErrorConstructor,
+  422: BackendFormValidationError as unknown as BackendErrorConstructor,
+  500: InternalBackendError as unknown as BackendErrorConstructor,
+  fallback: UnknownBackendError as unknown as BackendErrorConstructor,
 };
 
 /**
@@ -55,7 +50,7 @@ export function createBackendError(
   const ErrorClass = defaultBackendErrorMap[status] ?? defaultBackendErrorMap.fallback;
 
   return new ErrorClass({
-    dto: dto as never,
+    dto,
     status,
   });
 }
