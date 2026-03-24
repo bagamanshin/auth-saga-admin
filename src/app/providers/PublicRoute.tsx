@@ -4,12 +4,8 @@ import { useSelector } from 'react-redux';
 import { PATHS } from '@app/routes/paths';
 import { selectSessionTokens } from '@entities/session';
 
-export const PublicRoute = ({ component: Component, ...rest }: RouteProps) => {
+export const PublicRoute = ({ component: Component, render, ...rest }: RouteProps) => {
   const isAuthenticated = useSelector(selectSessionTokens);
-
-  if (!Component) {
-    return null;
-  }
 
   return (
     <Route
@@ -23,7 +19,11 @@ export const PublicRoute = ({ component: Component, ...rest }: RouteProps) => {
             }}
           />
         ) : (
-          <Component {...props} />
+          Component ? (
+            <Component {...props} />
+          ) : (
+            render?.(props)
+          )
         )
       }
     />
