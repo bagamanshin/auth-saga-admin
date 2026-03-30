@@ -15,16 +15,9 @@ import {
   type SessionTokens,
   refreshSessionTokensRequest,
 } from '../slice';
-import { BackendGeneralError, type ApiResponse } from '@shared/api';
+import { BackendGeneralError, type ApiResponse, type ApiGeneralErrorResponseDTO } from '@shared/api';
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-const TOKENS: SessionTokens = {
-  access_token: 'access-abc',
-  refresh_token: 'refresh-xyz',
-};
+import { MOCK_TOKENS as TOKENS } from '../../api/__tests__/testUtils';
 
 const REFRESH_RESPONSE: ApiResponse<RefreshTokenResponseDTO> = {
   data: {
@@ -135,7 +128,7 @@ describe('sessionSaga / refreshSessionTokensWorker', () => {
   it('dispatches failure and clears tokens on API error', () => {
     const apiError = new BackendGeneralError({
       status: 400,
-      dto: {code: 400, message: 'wrong credentials', name: 'name', status: 400, type: 'type'}
+      dto: { message: 'Wrong credentials' } as ApiGeneralErrorResponseDTO,
     });
 
     return expectSaga(sessionSaga)

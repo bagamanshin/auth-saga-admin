@@ -18,23 +18,19 @@ import {
 } from '../../model/slice';
 import { authRequest } from '../authRequest';
 import { AuthRequestPreventedError } from '../errors';
+import {
+  MOCK_REFRESHED_TOKENS as REFRESHED_TOKENS,
+  MOCK_TOKENS as TOKENS,
+  provideAuthRequestBase,
+  provideAuthRequestRefreshPending,
+  provide401ThenSuccess,
+  create401Error as make401Error,
+  silenceConsoleError,
+} from './testUtils';
 
 const ENDPOINT = '/api/test';
 
-const TOKENS: SessionTokens = {
-  access_token: 'access-abc',
-  refresh_token: 'refresh-xyz',
-};
-
-const REFRESHED_TOKENS: SessionTokens = {
-  access_token: 'new-access',
-  refresh_token: 'new-refresh',
-};
-
 const RESPONSE: ApiResponse<{ id: number }> = { data: { id: 1 } };
-
-const make401Error = () =>
-  new NotAuthorizedBackendError({ status: 401, dto: { reason: 'Unauthorized' } });
 
 const makeRefreshSuccessAction = (tokens: SessionTokens = REFRESHED_TOKENS) =>
   refreshSessionTokensSuccess({
@@ -43,17 +39,11 @@ const makeRefreshSuccessAction = (tokens: SessionTokens = REFRESHED_TOKENS) =>
     refresh_expired_at: 9999,
   });
 
-const silenceConsoleError = () => jest.spyOn(console, 'error').mockImplementation(() => {});
-
 describe('authRequest', () => {
   describe('initial request', () => {
     it('sends request with session Authorization header and returns the response', () => {
       return expectSaga(authRequest, ENDPOINT)
-        .provide([
-          [matchers.select(selectSessionRefreshPending), false],
-          [matchers.select(selectSessionTokens), TOKENS],
-          [matchers.call.fn(request), RESPONSE],
-        ])
+        .provide(provideAuthRequestBase())
         .not.put(clearSessionTokens())
         .returns(RESPONSE)
         .run();
@@ -66,11 +56,7 @@ describe('authRequest', () => {
           'X-Trace-Id': 'trace-1',
         },
       })
-        .provide([
-          [matchers.select(selectSessionRefreshPending), false],
-          [matchers.select(selectSessionTokens), TOKENS],
-          [matchers.call.fn(request), RESPONSE],
-        ])
+        .provide(provideAuthRequestBase())
         .call(request, ENDPOINT, {
           headers: {
             Authorization: `Bearer ${TOKENS.access_token}`,
@@ -86,11 +72,7 @@ describe('authRequest', () => {
       const consoleSpy = silenceConsoleError();
 
       return expectSaga(authRequest, ENDPOINT)
-        .provide([
-          [matchers.select(selectSessionRefreshPending), false],
-          [matchers.select(selectSessionTokens), TOKENS],
-          [matchers.call.fn(request), throwError(networkError)],
-        ])
+        .provide(provideAuthRequestBase(TOKENS, throwError(networkError)))
         .not.put(refreshSessionTokensRequest())
         .not.put(clearSessionTokens())
         .run()
@@ -106,11 +88,7 @@ describe('authRequest', () => {
   describe('when refresh is already pending before the request starts', () => {
     it('waits for refresh success and then sends the request with the refreshed access token', () => {
       return expectSaga(authRequest, ENDPOINT)
-        .provide([
-          [matchers.select(selectSessionRefreshPending), true],
-          [matchers.select(selectSessionTokens), REFRESHED_TOKENS],
-          [matchers.call.fn(request), RESPONSE],
-        ])
+        .provide(provideAuthRequestRefreshPending(REFRESHED_TOKENS, RESPONSE))
         .dispatch(makeRefreshSuccessAction())
         .not.put(clearSessionTokens())
         .call(request, ENDPOINT, {
@@ -148,40 +126,8 @@ describe('authRequest', () => {
   describe('when the initial request returns 401', () => {
     describe('and refresh succeeds', () => {
       it('dispatches refreshSessionTokensRequest and retries the request', () => {
-        const refreshSuccessAction = makeRefreshSuccessAction();
-        let requestCallCount = 0;
-
         return expectSaga(authRequest, ENDPOINT)
-          .provide({
-            select({ selector }, next) {
-              if (selector === selectSessionRefreshPending) return false;
-              if (selector === selectSessionTokens) return TOKENS;
-              return next();
-            },
-            call(effect, next) {
-              if (effect.fn !== request) {
-                return next();
-              }
-
-              requestCallCount++;
-
-              if (requestCallCount === 1) {
-                throw make401Error();
-              }
-
-              return RESPONSE;
-            },
-            take(effect, next) {
-              if (
-                Array.isArray(effect.pattern) &&
-                effect.pattern.includes(REFRESH_SESSION_TOKENS_SUCCESS)
-              ) {
-                return refreshSuccessAction;
-              }
-
-              return next();
-            },
-          })
+          .provide(provide401ThenSuccess(TOKENS, REFRESHED_TOKENS, RESPONSE, makeRefreshSuccessAction()))
           .put(refreshSessionTokensRequest())
           .returns(RESPONSE)
           .run();
@@ -280,7 +226,7 @@ describe('authRequest', () => {
       });
 
       it('clears the session when retry after refresh also returns 401', () => {
-        const consoleSpy = silenceConsoleError();
+        silenceConsoleError();
         let requestCallCount = 0;
 
         return expectSaga(authRequest, ENDPOINT)
@@ -291,10 +237,7 @@ describe('authRequest', () => {
               return next();
             },
             call(effect, next) {
-              if (effect.fn !== request) {
-                return next();
-              }
-
+              if (effect.fn !== request) return next();
               requestCallCount++;
               throw make401Error();
             },
@@ -308,7 +251,6 @@ describe('authRequest', () => {
           })
           .finally(() => {
             expect(requestCallCount).toBe(2);
-            consoleSpy.mockRestore();
           });
       });
 
